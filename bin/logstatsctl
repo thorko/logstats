@@ -1,0 +1,61 @@
+#!/usr/bin/perl
+use DB_File;
+
+$|=1;
+
+use Getopt::Long;                                                                                                                                                                                                                                            
+use Config::Simple;
+my $config;
+my $list;
+my $keys = 0;
+my $help = 0;
+
+sub help () {
+print <<'HELP';
+mailstatsctl -c <config> -l <command> [-h]
+
+-c, --config	config file
+-k, --keys      list all patterns
+-l, --list      counters, see config file for patterns to list
+
+HELP
+}
+                                                                                                                                                                                                                                                             
+Getopt::Long::Configure('bundling');
+GetOptions(
+	"h|help" => \$help,
+	"l|list=s" => \$list,
+    "k|keys" => \$keys,
+    "c|config=s" => \$config);
+
+if ( $help || !$config || (!$list && !$keys)) {
+	help();
+	exit(0);
+}
+
+die "Couldn't open config $config\n" if ( ! -e $config );
+my $cfg = new Config::Simple($config);
+my $global = $cfg->param(-block=>'global');
+my $patterns = $cfg->param(-block=>'patterns');
+
+if($keys) {
+    foreach (keys %$patterns) {
+        print "$_\n";
+    }
+    exit 0;
+}
+
+tie(%foo, "DB_File", "$global->{statsdb}", O_RDONLY, 0666, $DB_HASH) || die ("Cannot open $global->{statsdb}");
+
+foreach (keys %$patterns) {
+    if($_ =~ $list) {
+        if($foo{$_}) {
+            print "$foo{$_}\n";
+        } else {
+            print "0\n";
+        }
+    }
+}
+
+untie %foo;
+
