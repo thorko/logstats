@@ -23,9 +23,11 @@ Configuration
 Usage
 =====
 Start logstats daemon
+
 	logstats.pl -c <config file>
 
 Check counters with logstatsctl
+
 	logstatsctl -c <config file> -l <pattern> [-k]
-	-l <pattern>	list counter of pattern
-	-k						list all pattern
+		-l <pattern>	list counter of pattern
+		-k						list all pattern
